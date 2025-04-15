@@ -132,40 +132,8 @@ public class MazeRunner extends JFrame {
     }
     
     private void showInstructions() {
-        String instructions = 
-            "MAZE RUNNER - GAME INSTRUCTIONS\n\n" +
-            "OBJECTIVE:\n" +
-            "Navigate through the maze, find the key, and reach the door to escape.\n\n" +
-            "CONTROLS:\n" +
-            "- WASD or Arrow Keys: Move the player\n" +
-            "- SPACE: Shoot bullets in the direction you're facing\n" +
-            "- ESC: Pause game\n\n" +
-            "GAME ELEMENTS:\n" +
-            "- Player: You! Collect items and avoid monsters\n" +
-            "- Key: Find this to unlock the door\n" +
-            "- Door: Can only be opened with the key\n" +
-            "- Bombs: Avoid these or shoot them from a distance\n" +
-            "- Bullet pickups: Collect to increase your ammo (max 5)\n" +
-            "- Monsters: Avoid them or shoot them\n" +
-            "- Portals: Step on them to teleport to another location\n\n" +
-            "TIPS:\n" +
-            "- Monsters move in straight lines\n" +
-            "- Watch your bullet count\n" +
-            "- Shoot bombs from a safe distance\n" +
-            "- Use portals strategically to avoid monsters";
-        
-        JTextArea textArea = new JTextArea(instructions);
-        textArea.setEditable(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        textArea.setBackground(new Color(240, 240, 240));
-        textArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(500, 400));
-        
-        JOptionPane.showMessageDialog(this, scrollPane, "Game Instructions", JOptionPane.PLAIN_MESSAGE);
+    	Instruction instructionFrame = new Instruction();
+    	instructionFrame.setVisible(true);
     }
     
     private JButton createStyledButton(String text, Difficulty difficulty) {
