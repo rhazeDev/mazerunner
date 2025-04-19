@@ -3,16 +3,22 @@ package mazerunner;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import mazerunner.MazeRunner.Difficulty;
 
+import Database.Database;
+
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
     
+    private static Database database;
+    private static MazeRunner game;
+    
     private static final int CELL_SIZE = 32;
     private static final int GAME_SPEED = 60;
-    private static final int TIMER_MAX = 120;
+    private static final double TIMER_MAX = 120.0;
     private static final int EFFECT_DURATION = 15;
     
     private static final Color FLOOR_COLOR = new Color(250, 245, 235);
@@ -28,7 +34,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private List<Bullet> movingBullets;
     private List<Effect> activeEffects;
     
-    private int timeLeft = TIMER_MAX;
+    private DecimalFormat timeFormat = new DecimalFormat("0.0");
+    private double timeLeft = TIMER_MAX;
     private int[][] maze;
     private boolean gameOver;
     private boolean gamePaused;
@@ -71,7 +78,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         statusPanel = new JPanel();
         statusPanel.setLayout(new BorderLayout());
         
-        timeLabel = new JLabel("Time: " + TIMER_MAX);
+        timeLabel = new JLabel("Time: " + timeFormat.format(TIMER_MAX));
         timeLabel.setFont(new Font("Arial", Font.BOLD, 20));
         
         bulletLabel = new JLabel("Bullets: 3");
@@ -114,7 +121,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     
     public void updateGameInfo() {
         if (timeLabel != null) {
-            timeLabel.setText("Time: " + timeLeft);
+        	timeLabel.setText("Time: " + timeFormat.format(timeLeft));
         }
         
         if (bulletLabel != null && player != null) {
@@ -238,9 +245,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             countdownTimer.stop();
         }
         
-        countdownTimer = new Timer(1000, e -> {
+        countdownTimer = new Timer(100, e -> {
             if (!gamePaused && !gameOver) {
-                timeLeft--;
+                timeLeft -= 0.1;
+                timeLeft = Math.round(timeLeft * 1000) / 1000.0;
                 updateGameInfo();
                 
                 if (timeLeft <= 0) {
@@ -267,6 +275,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             if (countdownTimer != null) countdownTimer.stop();
             
             Timer dialogTimer = new Timer(500, event -> {
+            	// save natin yung result sa database
+            	if (won) {
+            		double gameTime = TIMER_MAX - timeLeft;
+                	database.saveResult(game.currentUser, gameTime, game.gameDifficulty);
+                	System.out.println("\nA hindot has finished a maze");
+                	System.out.println("Username: " + game.currentUser);
+                	System.out.println("Time Finished: " + gameTime);
+                	System.out.println("Difficulty: " + game.gameDifficulty);
+            	}
+            	
                 String message = won ? "You Won!" : "Game Over!";
                 int choice = JOptionPane.showOptionDialog(
                     this,
