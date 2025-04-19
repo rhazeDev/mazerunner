@@ -1,8 +1,28 @@
 package mazerunner;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.*;
+import java.awt.FlowLayout;
+
+import javax.swing.*;
+
+import java.util.List;
+import java.util.ArrayList;
+
+import Database.Database;
+import Database.UserData;
+import Dialogz.Instruction;
+import Dialogz.Leaderboard;
+import Dialogz.Login;
 
 public class MazeRunner extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -11,6 +31,23 @@ public class MazeRunner extends JFrame {
     
     private GamePanel gamePanel;
     private JPanel startScreen;
+    private JPanel difficultyPanel;
+    private JButton startGameButton;
+    private JPanel initialButtonPanel;
+    
+    Database database = new Database();
+    UserData UserData;
+    public static String gameDifficulty = "EASY";
+    public static String currentUser;
+
+    public static void setCurrentUser(String username) {
+    	currentUser = username;
+    }
+
+    public static String setDifficulty(String difficulty) {
+        gameDifficulty = difficulty;
+        return gameDifficulty;
+    }
     
     public enum Difficulty {
         EASY, MEDIUM, HARD
@@ -42,6 +79,19 @@ public class MazeRunner extends JFrame {
         startScreen.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        
+        JLabel welcomeLabel = new JLabel("Hello " + (currentUser != null ? currentUser : "Guest") + "!");
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        welcomeLabel.setForeground(Color.WHITE);
+        welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 0));
+        
+        JPanel topLeftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topLeftPanel.setOpaque(false);
+        topLeftPanel.add(welcomeLabel);
+        topPanel.add(topLeftPanel, BorderLayout.WEST);
+        
         JButton instructionButton = new JButton();
         instructionButton.setPreferredSize(new Dimension(40, 40));
         instructionButton.setBorderPainted(false);
@@ -65,20 +115,21 @@ public class MazeRunner extends JFrame {
         JPanel topRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         topRightPanel.setOpaque(false);
         topRightPanel.add(instructionButton);
+        topPanel.add(topRightPanel, BorderLayout.EAST);
         
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 0.05;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        startScreen.add(topRightPanel, gbc);
+        startScreen.add(topPanel, gbc);
         
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
         titlePanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         
         JLabel titleLabel = new JLabel("MAZE RUNNER");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 72));
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 92));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
@@ -100,21 +151,94 @@ public class MazeRunner extends JFrame {
         JPanel buttonsPanel = new JPanel(new GridBagLayout());
         buttonsPanel.setOpaque(false);
         
-        JPanel buttonContainer = new JPanel(new GridLayout(4, 1, 0, 20));
-        buttonContainer.setOpaque(false);
+        initialButtonPanel = new JPanel(new GridLayout(3, 1, 0, 20));
+        initialButtonPanel.setOpaque(false);
+        
+        startGameButton = createStyledButton("Start Game", null);
+        startGameButton.addActionListener(e -> showDifficultyOptions());
+        
+        JButton leaderboardButton = new JButton("Leaderboard");
+        leaderboardButton.setFont(new Font("Arial", Font.BOLD, 24));
+        leaderboardButton.setForeground(Color.WHITE);
+        leaderboardButton.setBackground(new Color(128, 0, 128));
+        leaderboardButton.setFocusPainted(false);
+        leaderboardButton.setBorderPainted(false);
+        leaderboardButton.setPreferredSize(new Dimension(300, 60));
+        
+        leaderboardButton.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                leaderboardButton.setBackground(new Color(147, 112, 219));
+            }
+            
+            public void mouseExited(MouseEvent e) {
+                leaderboardButton.setBackground(new Color(128, 0, 128));
+            }
+        });
+        
+        leaderboardButton.addActionListener(e -> showLeaderboard());
+        
+        // Create logout button with different color
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.BOLD, 24));
+        logoutButton.setForeground(Color.WHITE);
+        logoutButton.setBackground(new Color(178, 34, 34));
+        logoutButton.setFocusPainted(false);
+        logoutButton.setBorderPainted(false);
+        logoutButton.setPreferredSize(new Dimension(300, 60));
+        
+        logoutButton.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                logoutButton.setBackground(new Color(220, 20, 60));
+            }
+            
+            public void mouseExited(MouseEvent e) {
+                logoutButton.setBackground(new Color(178, 34, 34));
+            }
+        });
+        
+        logoutButton.addActionListener(e -> logout());
+        
+        initialButtonPanel.add(startGameButton);
+        initialButtonPanel.add(leaderboardButton);
+        initialButtonPanel.add(logoutButton);
+        
+        // Difficulty panel with 4 buttons (3 difficulties + back button)
+        difficultyPanel = new JPanel(new GridLayout(4, 1, 0, 20));
+        difficultyPanel.setOpaque(false);
+        difficultyPanel.setVisible(false);
         
         JButton easyButton = createStyledButton("Easy Mode", Difficulty.EASY);
         JButton mediumButton = createStyledButton("Medium Mode", Difficulty.MEDIUM);
         JButton hardButton = createStyledButton("Hard Mode", Difficulty.HARD);
-        JButton exitButton = createStyledButton("Exit Game", null);
-        exitButton.addActionListener(e -> System.exit(0));
         
-        buttonContainer.add(easyButton);
-        buttonContainer.add(mediumButton);
-        buttonContainer.add(hardButton);
-        buttonContainer.add(exitButton);
+        // Create back button with different color
+        JButton backButton = new JButton("Back");
+        backButton.setFont(new Font("Arial", Font.BOLD, 24));
+        backButton.setForeground(Color.WHITE);
+        backButton.setBackground(new Color(50, 50, 150)); // Dark blue color
+        backButton.setFocusPainted(false);
+        backButton.setBorderPainted(false);
+        backButton.setPreferredSize(new Dimension(300, 60));
         
-        buttonsPanel.add(buttonContainer);
+        backButton.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                backButton.setBackground(new Color(70, 70, 180)); // Lighter blue on hover
+            }
+            
+            public void mouseExited(MouseEvent e) {
+                backButton.setBackground(new Color(50, 50, 150)); // Back to original blue
+            }
+        });
+        
+        backButton.addActionListener(e -> returnToMainMenu());
+        
+        difficultyPanel.add(easyButton);
+        difficultyPanel.add(mediumButton);
+        difficultyPanel.add(hardButton);
+        difficultyPanel.add(backButton);
+        
+        buttonsPanel.add(initialButtonPanel);
+        buttonsPanel.add(difficultyPanel);
         
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -131,9 +255,39 @@ public class MazeRunner extends JFrame {
         gbc.anchor = GridBagConstraints.SOUTH;
     }
     
+    private void showDifficultyOptions() {
+        initialButtonPanel.setVisible(false);
+        difficultyPanel.setVisible(true);
+        
+        startScreen.revalidate();
+        startScreen.repaint();
+    }
+    
+    private void returnToMainMenu() {
+        difficultyPanel.setVisible(false);
+        initialButtonPanel.setVisible(true);
+        
+        startScreen.revalidate();
+        startScreen.repaint();
+    }
+    
+    private void logout() {
+        dispose();
+        
+        SwingUtilities.invokeLater(() -> {
+            Login loginFrame = new Login();
+            loginFrame.setVisible(true);
+        });
+    }
+    
     private void showInstructions() {
     	Instruction instructionFrame = new Instruction();
     	instructionFrame.setVisible(true);
+    }
+    
+    private void showLeaderboard() {
+        Leaderboard leaderboardFrame = new Leaderboard(currentUser);
+        leaderboardFrame.setVisible(true);
     }
     
     private JButton createStyledButton(String text, Difficulty difficulty) {
@@ -148,6 +302,8 @@ public class MazeRunner extends JFrame {
         button.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 button.setBackground(new Color(100, 149, 237));
+                String[] btnTexts = button.getText().split("\s");
+                gameDifficulty = btnTexts[0].toUpperCase();
             }
             
             public void mouseExited(MouseEvent e) {
@@ -176,19 +332,15 @@ public class MazeRunner extends JFrame {
     }
     
     public void showStartScreen() {
+        if (difficultyPanel != null) {
+            difficultyPanel.setVisible(false);
+        }
+        if (initialButtonPanel != null) {
+            initialButtonPanel.setVisible(true);
+        }
+        
         setContentPane(startScreen);
         revalidate();
         repaint();
-    }
-    
-    public static void main(String[] args) {
-        try {
-        	new Database.conn();
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        SwingUtilities.invokeLater(() -> new MazeRunner());
     }
 }
