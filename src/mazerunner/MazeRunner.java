@@ -34,11 +34,12 @@ public class MazeRunner extends JFrame {
     private JPanel difficultyPanel;
     private JButton startGameButton;
     private JPanel initialButtonPanel;
+    private static JLabel welcomeLabel;
     
     Database database = new Database();
     UserData UserData;
     public static String gameDifficulty = "EASY";
-    public static String currentUser;
+    public static String currentUser = "Guest";
 
     public static void setCurrentUser(String username) {
     	currentUser = username;
@@ -47,6 +48,10 @@ public class MazeRunner extends JFrame {
     public static String setDifficulty(String difficulty) {
         gameDifficulty = difficulty;
         return gameDifficulty;
+    }
+    
+    public static void refreshUser() {
+    	welcomeLabel.setText("Hello " + (currentUser != null ? currentUser : "Guest") + "!");
     }
     
     public enum Difficulty {
@@ -82,7 +87,7 @@ public class MazeRunner extends JFrame {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
         
-        JLabel welcomeLabel = new JLabel("Hello " + (currentUser != null ? currentUser : "Guest") + "!");
+        welcomeLabel = new JLabel("Hello " + (currentUser != null ? currentUser : "Guest") + "!");
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 36));
         welcomeLabel.setForeground(Color.WHITE);
         welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 0));
@@ -178,7 +183,7 @@ public class MazeRunner extends JFrame {
         leaderboardButton.addActionListener(e -> showLeaderboard());
         
         // Create logout button with different color
-        JButton logoutButton = new JButton("Logout");
+        JButton logoutButton = new JButton("Switch User");
         logoutButton.setFont(new Font("Arial", Font.BOLD, 24));
         logoutButton.setForeground(Color.WHITE);
         logoutButton.setBackground(new Color(178, 34, 34));
@@ -256,11 +261,16 @@ public class MazeRunner extends JFrame {
     }
     
     private void showDifficultyOptions() {
-        initialButtonPanel.setVisible(false);
-        difficultyPanel.setVisible(true);
-        
-        startScreen.revalidate();
-        startScreen.repaint();
+        if (!currentUser.equalsIgnoreCase("guest")) {
+        	initialButtonPanel.setVisible(false);
+            difficultyPanel.setVisible(true);
+            
+            startScreen.revalidate();
+            startScreen.repaint();
+        } else {
+        	JOptionPane option = new JOptionPane();
+        	option.showMessageDialog(option, "Log in first");
+        }
     }
     
     private void returnToMainMenu() {
@@ -272,8 +282,6 @@ public class MazeRunner extends JFrame {
     }
     
     private void logout() {
-        dispose();
-        
         SwingUtilities.invokeLater(() -> {
             Login loginFrame = new Login();
             loginFrame.setVisible(true);
@@ -342,5 +350,12 @@ public class MazeRunner extends JFrame {
         setContentPane(startScreen);
         revalidate();
         repaint();
+    }
+    
+    public static void main(String[] args) {
+    	MazeRunner game = new MazeRunner();
+    	game.setVisible(true);
+        Login frame = new Login();
+        frame.setVisible(true);
     }
 }
