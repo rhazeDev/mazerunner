@@ -182,7 +182,6 @@ public class MazeRunner extends JFrame {
         
         leaderboardButton.addActionListener(e -> showLeaderboard());
         
-        // Create logout button with different color
         JButton logoutButton = new JButton("Switch User");
         logoutButton.setFont(new Font("Arial", Font.BOLD, 24));
         logoutButton.setForeground(Color.WHITE);
@@ -207,7 +206,6 @@ public class MazeRunner extends JFrame {
         initialButtonPanel.add(leaderboardButton);
         initialButtonPanel.add(logoutButton);
         
-        // Difficulty panel with 4 buttons (3 difficulties + back button)
         difficultyPanel = new JPanel(new GridLayout(4, 1, 0, 20));
         difficultyPanel.setOpaque(false);
         difficultyPanel.setVisible(false);
@@ -216,22 +214,21 @@ public class MazeRunner extends JFrame {
         JButton mediumButton = createStyledButton("Medium Mode", Difficulty.MEDIUM);
         JButton hardButton = createStyledButton("Hard Mode", Difficulty.HARD);
         
-        // Create back button with different color
         JButton backButton = new JButton("Back");
         backButton.setFont(new Font("Arial", Font.BOLD, 24));
         backButton.setForeground(Color.WHITE);
-        backButton.setBackground(new Color(50, 50, 150)); // Dark blue color
+        backButton.setBackground(new Color(50, 50, 150));
         backButton.setFocusPainted(false);
         backButton.setBorderPainted(false);
         backButton.setPreferredSize(new Dimension(300, 60));
         
         backButton.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
-                backButton.setBackground(new Color(70, 70, 180)); // Lighter blue on hover
+                backButton.setBackground(new Color(70, 70, 180));
             }
             
             public void mouseExited(MouseEvent e) {
-                backButton.setBackground(new Color(50, 50, 150)); // Back to original blue
+                backButton.setBackground(new Color(50, 50, 150));
             }
         });
         
