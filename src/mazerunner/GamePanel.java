@@ -84,6 +84,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         bulletLabel = new JLabel("Bullets: 3");
         bulletLabel.setFont(new Font("Arial", Font.BOLD, 20));
         
+        JLabel difficultyLabel = new JLabel(MazeRunner.gameDifficulty);
+        difficultyLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        difficultyLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         restartButton = new JButton("Restart");
         try {
             ImageIcon restartIcon = new ImageIcon(getClass().getResource("/images/restart.png"));
@@ -108,6 +112,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         leftPanel.add(bulletLabel);
         
         statusPanel.add(leftPanel, BorderLayout.WEST);
+        statusPanel.add(difficultyLabel, BorderLayout.CENTER);
         statusPanel.add(restartButton, BorderLayout.EAST);
         add(statusPanel, BorderLayout.NORTH);
         
@@ -185,6 +190,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         updateGameInfo();
         gameTimer.start();
         requestFocusInWindow();
+
+        Component[] components = statusPanel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JLabel && comp == statusPanel.getComponent(1)) {
+                ((JLabel)comp).setText(MazeRunner.gameDifficulty);
+                break;
+            }
+        }
     }
     
     private void createGameElements() {
