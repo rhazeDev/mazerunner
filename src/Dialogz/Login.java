@@ -21,7 +21,7 @@ public class Login extends JFrame {
      */
     public Login() {
         setTitle("Maze Runner - Login");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 400, 500);
         setLocationRelativeTo(null);
         setResizable(true);
@@ -155,20 +155,22 @@ public class Login extends JFrame {
         
         SwingUtilities.invokeLater(() -> {
             MazeRunner.setCurrentUser(loggedInUsername);
-            MazeRunner game = new MazeRunner();
+            MazeRunner.refreshUser();
         });
     }
     
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        SwingUtilities.invokeLater(() -> {
-            Login frame = new Login();
-            frame.setVisible(true);
-        });
-    }
+//    public static void main(String[] args) {
+//        try {
+//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        
+//        SwingUtilities.invokeLater(() -> {
+//        	MazeRunner game = new MazeRunner();
+//        	game.setVisible(true);
+//            Login frame = new Login();
+//            frame.setVisible(true);
+//        });
+//    }
 }
