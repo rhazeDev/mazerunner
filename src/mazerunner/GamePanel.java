@@ -13,9 +13,6 @@ import Database.Database;
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
     
-    private static Database database;
-    private static MazeRunner game;
-    
     private static final int CELL_SIZE = 32;
     private static final int GAME_SPEED = 60;
     private static final double TIMER_MAX = 120.0;
@@ -308,33 +305,55 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             if (countdownTimer != null) countdownTimer.stop();
             
             Timer dialogTimer = new Timer(500, event -> {
-            	// save natin yung result sa database
-            	if (won) {
-            		double gameTime = TIMER_MAX - timeLeft;
-                	database.saveResult(game.currentUser, gameTime, game.gameDifficulty);
-                	System.out.println("\nA hindot has finished a maze");
-                	System.out.println("Username: " + game.currentUser);
-                	System.out.println("Time Finished: " + gameTime);
-                	System.out.println("Difficulty: " + game.gameDifficulty);
-            	}
-            	
-                String message = won ? "You Won!" : "Game Over!";
-                int choice = JOptionPane.showOptionDialog(
-                    this,
-                    message + "\nDo you want to play again?",
-                    message,
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    new String[]{"Play Again", "Main Menu"},
-                    "Play Again"
-                );
+                double gameTime = TIMER_MAX - timeLeft;
+                boolean isNewBestTime = false;
+                double bestTime = Double.MAX_VALUE;
+                int rank = 0;
                 
-                if (choice == JOptionPane.YES_OPTION) {
-                    initGame(currentDifficulty);
+                bestTime = Database.getBestTime(MazeRunner.currentUser, MazeRunner.gameDifficulty);
+                
+                if (won) {
+                    Database.saveResult(MazeRunner.currentUser, gameTime, MazeRunner.gameDifficulty);
+                    if (bestTime == Double.MAX_VALUE) {
+                        bestTime = gameTime;
+                        isNewBestTime = true;
+                    } else {
+                        isNewBestTime = (Math.abs(gameTime - bestTime) < 0.001);
+                    }
+                    
+                    rank = Database.getUserRank(MazeRunner.currentUser, MazeRunner.gameDifficulty);
                 } else {
-                    gameFrame.showStartScreen();
+                    if (bestTime < Double.MAX_VALUE) {
+                        rank = Database.getUserRank(MazeRunner.currentUser, MazeRunner.gameDifficulty);
+                    }
                 }
+                
+                Dialogz.GameResult resultDialog = new Dialogz.GameResult();
+                resultDialog.setTitle(won ? "Game Finished" : "Game Over");
+                
+                String gameTimeStr = won ? timeFormat.format(gameTime) : "--";
+                String bestTimeStr;
+                
+                if (bestTime == Double.MAX_VALUE) {
+                    bestTimeStr = won ? gameTimeStr : "--";
+                } else {
+                    bestTimeStr = timeFormat.format(bestTime);
+                }
+                
+                resultDialog.setTimes(gameTimeStr, bestTimeStr, isNewBestTime, won);
+                resultDialog.setDifficulty(MazeRunner.gameDifficulty);
+                resultDialog.setRank(rank, isNewBestTime && won);
+                resultDialog.setButtonActions(
+                    actionEvent -> {
+                        resultDialog.dispose();
+                        initGame(currentDifficulty);
+                    },
+                    actionEvent -> {
+                        resultDialog.dispose();
+                        gameFrame.showStartScreen();
+                    }
+                );
+                resultDialog.setVisible(true);
             });
             dialogTimer.setRepeats(false);
             dialogTimer.start();
