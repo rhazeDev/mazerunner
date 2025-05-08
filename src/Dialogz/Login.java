@@ -158,19 +158,4 @@ public class Login extends JFrame {
             MazeRunner.refreshUser();
         });
     }
-    
-//    public static void main(String[] args) {
-//        try {
-//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        
-//        SwingUtilities.invokeLater(() -> {
-//        	MazeRunner game = new MazeRunner();
-//        	game.setVisible(true);
-//            Login frame = new Login();
-//            frame.setVisible(true);
-//        });
-//    }
 }
