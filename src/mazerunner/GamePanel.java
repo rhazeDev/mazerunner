@@ -77,14 +77,34 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         
         statusPanel = new JPanel();
         statusPanel.setLayout(new BorderLayout());
-        
-        timeLabel = new JLabel("Time: " + timeFormat.format(TIMER_MAX));
+
+        timeLabel = new JLabel();
+        try {
+            ImageIcon timerIcon = new ImageIcon(getClass().getResource("/images/time.png"));
+            if (timerIcon.getIconWidth() <= 0) {
+                timerIcon = new ImageIcon("images/time.png");
+            }
+            timeLabel.setIcon(timerIcon);
+        } catch (Exception e) {
+            System.out.println("Error loading timer icon: " + e.getMessage());
+        }
+        timeLabel.setText(timeFormat.format(TIMER_MAX));
         timeLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        
-        bulletLabel = new JLabel("Bullets: 3");
+
+        bulletLabel = new JLabel();
+        try {
+            ImageIcon bulletIcon = new ImageIcon(getClass().getResource("/images/bullet_pickup.png"));
+            if (bulletIcon.getIconWidth() <= 0) {
+                bulletIcon = new ImageIcon("images/bullet.png");
+            }
+            bulletLabel.setIcon(bulletIcon);
+        } catch (Exception e) {
+            System.out.println("Error loading bullet icon: " + e.getMessage());
+        }
+        bulletLabel.setText("3");
         bulletLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        
-        JLabel difficultyLabel = new JLabel(MazeRunner.gameDifficulty);
+
+        JLabel difficultyLabel = new JLabel(MazeRunner.gameDifficulty + " MODE");
         difficultyLabel.setFont(new Font("Arial", Font.BOLD, 20));
         difficultyLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -126,11 +146,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     
     public void updateGameInfo() {
         if (timeLabel != null) {
-        	timeLabel.setText("Time: " + timeFormat.format(timeLeft));
+            timeLabel.setText(timeFormat.format(timeLeft));
         }
         
         if (bulletLabel != null && player != null) {
-            bulletLabel.setText("Bullets: " + player.getBullets());
+            bulletLabel.setText(String.valueOf(player.getBullets()));
         }
     }
     
