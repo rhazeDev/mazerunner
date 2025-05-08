@@ -65,6 +65,71 @@ public class Database {
         return leaderboard;
     }
     
+    public static double getBestTime(String username, String difficulty) {
+        double bestTime = Double.MAX_VALUE;
+        
+        String query = "SELECT MIN(time_finished) as best_time FROM tblLeaderboard WHERE username = ? AND difficulty = ?";
+        
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            
+            ps.setString(1, username);
+            ps.setString(2, difficulty);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    bestTime = rs.getDouble("best_time");
+                    if (rs.wasNull()) {
+                        bestTime = Double.MAX_VALUE;
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            System.out.println("Error getting best time: " + e.getMessage());
+        }
+        
+        return bestTime;
+    }
+    
+    public static int getUserRank(String username, String difficulty) {
+        int rank = 0;
+        double bestTime = getBestTime(username, difficulty);
+        
+        if (bestTime == Double.MAX_VALUE) {
+            return 0;
+        }
+        
+        String query = """
+            SELECT COUNT(*) + 1 as rank
+            FROM (
+                SELECT username, MIN(time_finished) as best_time
+                FROM tblLeaderboard
+                WHERE difficulty = ?
+                GROUP BY username
+            ) as user_times
+            WHERE best_time < ?
+        """;
+        
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            
+            ps.setString(1, difficulty);
+            ps.setDouble(2, bestTime);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    rank = rs.getInt("rank");
+                }
+            }
+            
+        } catch (Exception e) {
+            System.out.println("Error getting user rank: " + e.getMessage());
+        }
+        
+        return rank;
+    }
+    
     public static void saveResult(String username, double time_finished, String difficulty) {
         List<UserData> leaderboard = new ArrayList<>();
         
@@ -83,5 +148,4 @@ public class Database {
             System.out.println("Error: " + e.getMessage());
         }
     }
-
 }
