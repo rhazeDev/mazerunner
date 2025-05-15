@@ -50,6 +50,9 @@ public class Door extends GameElement {
             open = true;
             winDialogShown = true;
             
+            // Play door opening sound
+            SoundManager.getInstance().playSound(SoundManager.DOOR_OPEN);
+            
             GamePanel gamePanel = player.getGamePanel();
             if (gamePanel != null) {
                 Timer endGameTimer = new Timer(1000, e -> gamePanel.endGame(true));
@@ -60,6 +63,10 @@ public class Door extends GameElement {
     }
     
     public void setOpen(boolean open) {
+        if (!this.open && open) {
+            // Play door opening sound when door state changes from closed to open
+            SoundManager.getInstance().playSound(SoundManager.DOOR_OPEN);
+        }
         this.open = open;
     }
 }
