@@ -47,12 +47,16 @@ public class Bomb extends GameElement {
         GamePanel gamePanel = player.getGamePanel();
         if (gamePanel != null) {
             exploded = true;
+            // Play bomb explosion sound
+            SoundManager.getInstance().playSound(SoundManager.BOMB_EXPLODE);
             gamePanel.endGame(false);
         }
     }
 
     public void onShot() {
         exploded = true;
+        // Play bomb explosion sound
+        SoundManager.getInstance().playSound(SoundManager.BOMB_EXPLODE);
     }
 
     public boolean isExploded() {
