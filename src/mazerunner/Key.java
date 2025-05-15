@@ -42,6 +42,9 @@ public class Key extends GameElement {
             player.setHasKey(true);
             collected = true;
             
+            // Play key collection sound (similar to door opening)
+            SoundManager.getInstance().playSound(SoundManager.DOOR_OPEN);
+            
             GamePanel gamePanel = player.getGamePanel();
             if (gamePanel != null) {
                 gamePanel.getGameElements().remove(this);
