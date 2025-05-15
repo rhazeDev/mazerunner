@@ -48,11 +48,15 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     private ImageIcon explosionImage;
     private ImageIcon killImage;
+    
+    private SoundManager soundManager;
 
     public GamePanel(MazeRunner gameFrame) {
         super();
 
         this.gameFrame = gameFrame;
+        this.soundManager = SoundManager.getInstance();
+        
         setLayout(new BorderLayout());
         setFocusable(true);
         addKeyListener(this);
@@ -301,8 +305,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         gameOver = true;
         gameWon = won;
 
-        if (!won && player != null) {
-            addEffect(player.getX(), player.getY(), EffectType.EXPLOSION);
+        if (won) {
+            soundManager.playSound(SoundManager.GAME_WIN);
+        } else {
+            soundManager.playSound(SoundManager.GAME_OVER);
+            if (player != null) {
+                soundManager.playSound(SoundManager.PLAYER_CRASH);
+                addEffect(player.getX(), player.getY(), EffectType.EXPLOSION);
+            }
         }
 
         Timer delayTimer = new Timer(500, e -> {
@@ -400,6 +410,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         for (Monster monster : monsters) {
             if (player.getX() == monster.getX() && player.getY() == monster.getY() && !monster.isDead()) {
+                soundManager.playSound(SoundManager.PLAYER_CRASH);
                 endGame(false);
                 return;
             }
@@ -422,7 +433,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             for (Monster monster : monsters) {
                 if (bullet.getX() == monster.getX() && bullet.getY() == monster.getY() && !monster.isDead()) {
                     monster.setDead(true);
-
+                    
+                    soundManager.playSound(SoundManager.MONSTER_KILL);
                     addEffect(monster.getX(), monster.getY(), EffectType.KILL);
 
                     if (i < movingBullets.size()) {
@@ -441,7 +453,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 if (element instanceof Bomb &&
                         bullet.getX() == element.getX() &&
                         bullet.getY() == element.getY()) {
-
+                    
+                    soundManager.playSound(SoundManager.BOMB_EXPLODE);
                     addEffect(element.getX(), element.getY(), EffectType.EXPLOSION);
                     gameElements.remove(j);
 
@@ -469,6 +482,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         if (player != null && player.getBullets() > 0) {
             player.useBullet();
             updateGameInfo();
+
+            soundManager.playSound(SoundManager.BULLET_SHOOT);
 
             Bullet bullet = new Bullet(player.getX(), player.getY(), player.getDirection());
             movingBullets.add(bullet);
