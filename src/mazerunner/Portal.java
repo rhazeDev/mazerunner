@@ -52,6 +52,9 @@ public class Portal extends GameElement {
             return;
         }
         
+        // Play portal sound
+        SoundManager.getInstance().playSound(SoundManager.PORTAL_ENTER);
+        
         lastPlayerPosition = new Point(player.getX(), player.getY());
         lastTeleportTime = currentTime;
         lastTeleportDestination = new Point(targetPosition);
