@@ -40,6 +40,8 @@ public class MazeRunner extends JFrame {
     UserData UserData;
     public static String gameDifficulty = "EASY";
     public static String currentUser = "Guest";
+    
+    private SoundManager soundManager;
 
     public static void setCurrentUser(String username) {
     	currentUser = username;
@@ -64,8 +66,13 @@ public class MazeRunner extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
+        soundManager = SoundManager.getInstance();
+        
         createStartScreen();
         setContentPane(startScreen);
+        
+        soundManager.loopSound(SoundManager.BACKGROUND_MUSIC);
+        
         setVisible(true);
     }
     
@@ -328,6 +335,8 @@ public class MazeRunner extends JFrame {
             gamePanel = new GamePanel(this);
         }
         
+        soundManager.reduceBackgroundMusic();
+        
         setContentPane(gamePanel);
         revalidate();
         repaint();
@@ -344,9 +353,15 @@ public class MazeRunner extends JFrame {
             initialButtonPanel.setVisible(true);
         }
         
+        soundManager.restoreBackgroundMusic();
+        
         setContentPane(startScreen);
         revalidate();
         repaint();
+    }
+    
+    public SoundManager getSoundManager() {
+        return soundManager;
     }
     
     public static void main(String[] args) {
