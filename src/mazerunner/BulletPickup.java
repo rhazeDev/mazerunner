@@ -41,6 +41,10 @@ public class BulletPickup extends GameElement {
             if (player.getBullets() < 5) {
                 player.addBullet();
                 collected = true;
+                
+                // Play bullet pickup sound
+                SoundManager.getInstance().playSound(SoundManager.BULLET_PICKUP);
+                
                 GamePanel gamePanel = player.getGamePanel();
                 if (gamePanel != null) {
                     gamePanel.getGameElements().remove(this);
