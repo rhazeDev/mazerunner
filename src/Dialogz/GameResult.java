@@ -88,7 +88,7 @@ public class GameResult extends JFrame {
 		difficultyLabel.setOpaque(true);
 		difficultyLabel.setBackground(new Color(0, 191, 255));
 		difficultyLabel.setForeground(new Color(0, 0, 102));
-		difficultyLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
+		difficultyLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
 		difficultyLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 		difficultyPanel.add(difficultyLabel, BorderLayout.CENTER);
 		
@@ -170,14 +170,14 @@ public class GameResult extends JFrame {
 		buttonsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 		
 		playAgainBtn = new JButton("PLAY AGAIN");
-		playAgainBtn.setFont(new Font("Tahoma", Font.BOLD, 14));
+		playAgainBtn.setFont(new Font("Tahoma", Font.BOLD, 16));
 		playAgainBtn.setForeground(Color.WHITE);
 		playAgainBtn.setBackground(new Color(46, 125, 50));
 		playAgainBtn.setPreferredSize(new Dimension(180, 50));
 		buttonsPanel.add(playAgainBtn);
 		
 		mainMenuBtn = new JButton("MENU");
-		mainMenuBtn.setFont(new Font("Tahoma", Font.BOLD, 14));
+		mainMenuBtn.setFont(new Font("Tahoma", Font.BOLD, 16));
 		mainMenuBtn.setForeground(Color.WHITE);
 		mainMenuBtn.setBackground(new Color(21, 101, 192));
 		mainMenuBtn.setPreferredSize(new Dimension(180, 50));
@@ -187,7 +187,7 @@ public class GameResult extends JFrame {
 		contentPane.add(buttonsPanel);
 		contentPane.add(Box.createVerticalStrut(20));
 		
-		rankLabel = new JLabel("Rank #1", SwingConstants.CENTER);
+		rankLabel = new JLabel("Rank 69", SwingConstants.CENTER);
 		rankLabel.setForeground(GOLD_COLOR);
 		rankLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
 		rankLabel.setAlignmentX(CENTER_ALIGNMENT);
