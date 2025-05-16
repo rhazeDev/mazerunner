@@ -102,9 +102,7 @@ private static final String pass = "";
 5. Use the following controls to navigate through the maze:
    - Arrow keys or WASD: Move the player
    - Spacebar: Shoot bullets (if you have them)
-   - P: Pause the game
-   - ESC: Return to the main menu
-
+   - ESC: Pause the game
 ## Game Elements
 
 - **Player**: The character you control
