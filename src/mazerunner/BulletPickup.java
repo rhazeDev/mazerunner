@@ -10,13 +10,8 @@ public class BulletPickup extends GameElement {
     public BulletPickup(int x, int y) {
         super(x, y);
         this.collected = false;
-        try {
-            bulletPickupImage = new ImageIcon(getClass().getResource("/images/bullet_pickup.png"));
-            if (bulletPickupImage.getIconWidth() <= 0) {
-                bulletPickupImage = new ImageIcon("images/bullet_pickup.png");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading bullet pickup image: " + e.getMessage());
+        bulletPickupImage = MazeRunner.ImageAssets.loadIcon(BulletPickup.class, "/images/bullet_pickup.png");
+        if (bulletPickupImage.getIconWidth() <= 0) {
             bulletPickupImage = null;
         }
     }

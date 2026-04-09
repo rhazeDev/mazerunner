@@ -13,20 +13,12 @@ public class Door extends GameElement {
         super(x, y);
         this.open = false;
         
-        try {
-            doorImage = new ImageIcon(getClass().getResource("/images/door.png"));
-            openDoorImage = new ImageIcon(getClass().getResource("/images/opened_door.png"));
-            
-            if (doorImage == null || doorImage.getIconWidth() <= 0) {
-                doorImage = new ImageIcon("images/door.png");
-            }
-            
-            if (openDoorImage == null || openDoorImage.getIconWidth() <= 0) {
-                openDoorImage = new ImageIcon("images/opened_door.png");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading door images: " + e.getMessage());
+        doorImage = MazeRunner.ImageAssets.loadIcon(Door.class, "/images/door.png");
+        openDoorImage = MazeRunner.ImageAssets.loadIcon(Door.class, "/images/opened_door.png");
+        if (doorImage.getIconWidth() <= 0) {
             doorImage = null;
+        }
+        if (openDoorImage.getIconWidth() <= 0) {
             openDoorImage = null;
         }
     }

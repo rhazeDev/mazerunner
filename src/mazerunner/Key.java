@@ -11,13 +11,8 @@ public class Key extends GameElement {
         super(x, y);
         this.collected = false;
         
-        try {
-            keyImage = new ImageIcon(getClass().getResource("/images/key.png"));
-            if (keyImage.getIconWidth() <= 0) {
-                keyImage = new ImageIcon("images/key.png");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading key image: " + e.getMessage());
+        keyImage = MazeRunner.ImageAssets.loadIcon(Key.class, "/images/key.png");
+        if (keyImage.getIconWidth() <= 0) {
             keyImage = null;
         }
     }

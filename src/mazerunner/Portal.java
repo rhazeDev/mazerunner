@@ -15,13 +15,8 @@ public class Portal extends GameElement {
         super(x, y);
         this.targetPosition = targetPosition;
 
-        try {
-            portalImage = new ImageIcon(getClass().getResource("/images/portal.png"));
-            if (portalImage.getIconWidth() <= 0) {
-                portalImage = new ImageIcon("images/portal.png");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading portal image: " + e.getMessage());
+        portalImage = MazeRunner.ImageAssets.loadIcon(Portal.class, "/images/portal.png");
+        if (portalImage.getIconWidth() <= 0) {
             portalImage = null;
         }
     }

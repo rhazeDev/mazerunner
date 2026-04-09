@@ -7,16 +7,21 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import java.awt.FlowLayout;
 
-import javax.swing.*;
-
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
+
+import javax.swing.*;
 
 import Database.Database;
 import Database.UserData;
@@ -28,6 +33,7 @@ public class MazeRunner extends JFrame {
     private static final long serialVersionUID = 1L;
     private static final int FRAME_WIDTH = 1200;
     private static final int FRAME_HEIGHT = 900;
+    private static final Dimension MODE_BUTTON_SIZE = new Dimension(300, 60);
     
     private GamePanel gamePanel;
     private JPanel startScreen;
@@ -72,8 +78,60 @@ public class MazeRunner extends JFrame {
         setContentPane(startScreen);
         
         soundManager.loopSound(SoundManager.BACKGROUND_MUSIC);
-        
+
+        installFullScreenShortcut();
+
         setVisible(true);
+    }
+
+    private GraphicsDevice defaultScreenDevice() {
+        return GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    }
+
+    private void enterFullScreen() {
+        GraphicsDevice gd = defaultScreenDevice();
+        if (gd.isFullScreenSupported()) {
+            gd.setFullScreenWindow(this);
+        } else {
+            setExtendedState(JFrame.MAXIMIZED_BOTH);
+        }
+    }
+
+    private void exitFullScreen() {
+        GraphicsDevice gd = defaultScreenDevice();
+        if (gd.isFullScreenSupported() && gd.getFullScreenWindow() == this) {
+            gd.setFullScreenWindow(null);
+        }
+        setExtendedState(JFrame.NORMAL);
+        setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        setLocationRelativeTo(null);
+    }
+
+    public void toggleFullScreen() {
+        GraphicsDevice gd = defaultScreenDevice();
+        boolean fsWindow = gd.isFullScreenSupported() && gd.getFullScreenWindow() == this;
+        boolean maximizedFallback = !gd.isFullScreenSupported()
+                && (getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
+        if (fsWindow || maximizedFallback) {
+            exitFullScreen();
+        } else {
+            enterFullScreen();
+        }
+    }
+
+    private void installFullScreenShortcut() {
+        KeyStroke f11 = KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0);
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(f11, "toggleFullScreen");
+        getRootPane().getActionMap().put("toggleFullScreen", new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (gamePanel != null && getContentPane() == gamePanel) {
+                    toggleFullScreen();
+                }
+            }
+        });
     }
     
     private void createStartScreen() {
@@ -110,13 +168,10 @@ public class MazeRunner extends JFrame {
         instructionButton.setContentAreaFilled(false);
         instructionButton.setFocusPainted(false);
         
-        try {
-            ImageIcon instructionIcon = new ImageIcon(getClass().getResource("/images/instruction.png"));
-            if (instructionIcon.getIconWidth() <= 0) {
-                instructionIcon = new ImageIcon("images/instruction.png");
-            }
+        ImageIcon instructionIcon = ImageAssets.loadIcon(MazeRunner.class, "/images/instruction.png");
+        if (instructionIcon.getIconWidth() > 0) {
             instructionButton.setIcon(instructionIcon);
-        } catch (Exception e) {
+        } else {
             instructionButton.setText("?");
             instructionButton.setFont(new Font("Arial", Font.BOLD, 20));
             instructionButton.setForeground(Color.WHITE);
@@ -175,7 +230,7 @@ public class MazeRunner extends JFrame {
         leaderboardButton.setBackground(new Color(128, 0, 128));
         leaderboardButton.setFocusPainted(false);
         leaderboardButton.setBorderPainted(false);
-        leaderboardButton.setPreferredSize(new Dimension(300, 60));
+        constrainMenuButtonSize(leaderboardButton);
         
         leaderboardButton.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
@@ -195,7 +250,7 @@ public class MazeRunner extends JFrame {
         logoutButton.setBackground(new Color(178, 34, 34));
         logoutButton.setFocusPainted(false);
         logoutButton.setBorderPainted(false);
-        logoutButton.setPreferredSize(new Dimension(300, 60));
+        constrainMenuButtonSize(logoutButton);
         
         logoutButton.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
@@ -227,7 +282,7 @@ public class MazeRunner extends JFrame {
         backButton.setBackground(new Color(50, 50, 150));
         backButton.setFocusPainted(false);
         backButton.setBorderPainted(false);
-        backButton.setPreferredSize(new Dimension(300, 60));
+        constrainMenuButtonSize(backButton);
         
         backButton.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
@@ -302,6 +357,12 @@ public class MazeRunner extends JFrame {
         leaderboardFrame.setVisible(true);
     }
     
+    private static void constrainMenuButtonSize(JButton button) {
+        button.setPreferredSize(MODE_BUTTON_SIZE);
+        button.setMinimumSize(MODE_BUTTON_SIZE);
+        button.setMaximumSize(MODE_BUTTON_SIZE);
+    }
+
     private JButton createStyledButton(String text, Difficulty difficulty) {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.BOLD, 24));
@@ -309,7 +370,7 @@ public class MazeRunner extends JFrame {
         button.setBackground(new Color(70, 130, 180));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setPreferredSize(new Dimension(300, 60));
+        constrainMenuButtonSize(button);
         
         button.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
@@ -340,7 +401,9 @@ public class MazeRunner extends JFrame {
         setContentPane(gamePanel);
         revalidate();
         repaint();
-        
+
+        enterFullScreen();
+
         gamePanel.initGame(difficulty);
         gamePanel.requestFocusInWindow();
     }
@@ -354,7 +417,9 @@ public class MazeRunner extends JFrame {
         }
         
         soundManager.restoreBackgroundMusic();
-        
+
+        exitFullScreen();
+
         setContentPane(startScreen);
         revalidate();
         repaint();
@@ -363,7 +428,46 @@ public class MazeRunner extends JFrame {
     public SoundManager getSoundManager() {
         return soundManager;
     }
-    
+
+    /**
+     * Resolves images from the classpath, then from disk under {@code images/} or
+     * {@code resources/images/} (works when the IDE output folder has no copied assets).
+     */
+    public static final class ImageAssets {
+        private ImageAssets() {
+        }
+
+        public static ImageIcon loadIcon(Class<?> context, String classpathPath) {
+            if (classpathPath == null || !classpathPath.startsWith("/")) {
+                throw new IllegalArgumentException("classpathPath must start with /");
+            }
+            URL url = context.getResource(classpathPath);
+            if (url == null) {
+                ClassLoader cl = context.getClassLoader();
+                if (cl != null) {
+                    url = cl.getResource(classpathPath.substring(1));
+                }
+            }
+            if (url != null) {
+                return new ImageIcon(url);
+            }
+            Path relPath = Path.of(classpathPath.substring(1));
+            String userDir = System.getProperty("user.dir", ".");
+            Path[] candidates = new Path[] {
+                    relPath,
+                    Path.of("resources").resolve(relPath),
+                    Path.of(userDir).resolve(relPath),
+                    Path.of(userDir).resolve("resources").resolve(relPath),
+            };
+            for (Path p : candidates) {
+                if (Files.isRegularFile(p)) {
+                    return new ImageIcon(p.toAbsolutePath().toString());
+                }
+            }
+            return new ImageIcon();
+        }
+    }
+
     public static void main(String[] args) {
     	MazeRunner game = new MazeRunner();
     	game.setVisible(true);

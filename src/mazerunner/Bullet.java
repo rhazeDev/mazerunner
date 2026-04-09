@@ -13,10 +13,8 @@ public class Bullet extends GameElement {
         super(x, y);
         this.direction = direction;
         
-        try {
-            bulletImage = new ImageIcon("./images/bullet.png");
-        } catch (Exception e) {
-            System.out.println("Error loading bullet image: " + e.getMessage());
+        bulletImage = MazeRunner.ImageAssets.loadIcon(Bullet.class, "/images/bullet.png");
+        if (bulletImage.getIconWidth() <= 0) {
             bulletImage = null;
         }
     }

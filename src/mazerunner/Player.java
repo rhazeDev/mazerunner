@@ -19,10 +19,8 @@ public class Player {
         this.bullets = 3;
         this.hasKey = false;
         
-        try {
-            playerImage = new ImageIcon("./images/player.png");
-        } catch (Exception e) {
-            System.out.println("Error loading player image: " + e.getMessage());
+        playerImage = MazeRunner.ImageAssets.loadIcon(Player.class, "/images/player.png");
+        if (playerImage.getIconWidth() <= 0) {
             playerImage = null;
         }
     }

@@ -24,13 +24,8 @@ public class Monster {
         this.verticalMovement = random.nextBoolean();
         this.direction = verticalMovement ? (random.nextBoolean() ? 0 : 2) : (random.nextBoolean() ? 1 : 3);
 
-        try {
-            monsterImage = new ImageIcon(getClass().getResource("/images/monster.png"));
-            if (monsterImage.getIconWidth() <= 0) {
-                monsterImage = new ImageIcon("images/monster.png");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading monster image: " + e.getMessage());
+        monsterImage = MazeRunner.ImageAssets.loadIcon(Monster.class, "/images/monster.png");
+        if (monsterImage.getIconWidth() <= 0) {
             monsterImage = null;
         }
     }

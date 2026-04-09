@@ -11,13 +11,8 @@ public class Bomb extends GameElement {
         super(x, y);
         this.exploded = false;
         
-        try {
-            bombImage = new ImageIcon(getClass().getResource("/images/bomb.png"));
-            if (bombImage.getIconWidth() <= 0) {
-                bombImage = new ImageIcon("images/bomb.png");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading bomb image: " + e.getMessage());
+        bombImage = MazeRunner.ImageAssets.loadIcon(Bomb.class, "/images/bomb.png");
+        if (bombImage.getIconWidth() <= 0) {
             bombImage = null;
         }
     }

@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import Database.Database;
 import Database.UserData;
@@ -20,22 +21,29 @@ public class Leaderboard extends JFrame {
     private JScrollPane scrollPane;
     private String currentDifficulty = "EASY";
     private JButton easyBtn, mediumBtn, hardBtn;
-    private Color backgroundColor = new Color(65, 105, 255);
+    private static final Color APP_BG = new Color(15, 23, 42);
+    private static final Color SURFACE = new Color(30, 41, 59);
+    private static final Color SURFACE_ALT = new Color(51, 65, 85);
+    private static final Color TEXT_PRIMARY = new Color(248, 250, 252);
+    private static final Color TEXT_MUTED = new Color(203, 213, 225);
+    private static final Color ACCENT = new Color(59, 130, 246);
+    private static final Color ACCENT_DARK = new Color(37, 99, 235);
+    private static final Color BORDER = new Color(71, 85, 105);
     
     private Database database;
     private String currentUser;
     
     private static final Color[] ROW_COLORS = {
-            new Color(255, 215, 0),
-            new Color(192, 192, 192),
-            new Color(205, 127, 50),
-            new Color(0, 102, 204),
-            new Color(0, 102, 204),
-            new Color(0, 102, 204),
-            new Color(0, 102, 204),
-            new Color(0, 102, 204),
-            new Color(0, 102, 204),
-            new Color(0, 102, 204)
+            new Color(245, 158, 11),
+            new Color(148, 163, 184),
+            new Color(180, 83, 9),
+            SURFACE_ALT,
+            SURFACE_ALT,
+            SURFACE_ALT,
+            SURFACE_ALT,
+            SURFACE_ALT,
+            SURFACE_ALT,
+            SURFACE_ALT
     };
 
     /**
@@ -57,12 +65,12 @@ public class Leaderboard extends JFrame {
         
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(null);
-        mainPanel.setBackground(new Color(0, 0, 128));
+        mainPanel.setBackground(APP_BG);
         contentPane.add(mainPanel, BorderLayout.CENTER);
         
         JLabel titleLabel = new JLabel("Leaderboard", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(TEXT_PRIMARY);
         titleLabel.setBounds(0, 10, 490, 50);
         mainPanel.add(titleLabel);
         
@@ -72,9 +80,9 @@ public class Leaderboard extends JFrame {
         difficultyPanel.setOpaque(false);
         mainPanel.add(difficultyPanel);
         
-        easyBtn = createDifficultyButton("Easy", "EASY", new Color(65, 105, 225));  // Blue
-        mediumBtn = createDifficultyButton("Medium", "MEDIUM", new Color(33, 37, 41));
-        hardBtn = createDifficultyButton("Hard", "HARD", new Color(33, 37, 41));
+        easyBtn = createDifficultyButton("Easy", "EASY");
+        mediumBtn = createDifficultyButton("Medium", "MEDIUM");
+        hardBtn = createDifficultyButton("Hard", "HARD");
         
         difficultyPanel.add(easyBtn);
         difficultyPanel.add(mediumBtn);
@@ -99,6 +107,12 @@ public class Leaderboard extends JFrame {
         
         JButton backBtn = new JButton("Back to Menu");
         backBtn.setFont(new Font("Arial", Font.BOLD, 16));
+        backBtn.setForeground(TEXT_PRIMARY);
+        backBtn.setBackground(ACCENT);
+        backBtn.setFocusPainted(false);
+        backBtn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER),
+                new EmptyBorder(10, 0, 10, 0)));
         backBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 dispose();
@@ -109,15 +123,13 @@ public class Leaderboard extends JFrame {
         loadLeaderboardData();
     }
     
-    private JButton createDifficultyButton(String text, String difficulty, Color bgColor) {
+    private JButton createDifficultyButton(String text, String difficulty) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         btn.setFocusPainted(false);
-        btn.setBackground(bgColor);
-        btn.setForeground(Color.WHITE);
-        
+        btn.setForeground(TEXT_PRIMARY);
         btn.setContentAreaFilled(true);
-        btn.setBorderPainted(false);
+        btn.setBorder(BorderFactory.createLineBorder(BORDER, 1));
         
         btn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -131,13 +143,17 @@ public class Leaderboard extends JFrame {
     }
     
     private void updateDifficultyButtonsState() {
-        easyBtn.setBackground(currentDifficulty.equals("EASY") ? new Color(65, 105, 225) : new Color(33, 37, 41));
-        mediumBtn.setBackground(currentDifficulty.equals("MEDIUM") ? new Color(65, 105, 255) : new Color(33, 37, 41));
-        hardBtn.setBackground(currentDifficulty.equals("HARD") ? new Color(65, 105, 225) : new Color(33, 37, 41));
-        
-        easyBtn.setForeground(Color.WHITE);
-        mediumBtn.setForeground(Color.WHITE);
-        hardBtn.setForeground(Color.WHITE);
+        easyBtn.setBackground(currentDifficulty.equals("EASY") ? ACCENT : SURFACE);
+        mediumBtn.setBackground(currentDifficulty.equals("MEDIUM") ? ACCENT : SURFACE);
+        hardBtn.setBackground(currentDifficulty.equals("HARD") ? ACCENT : SURFACE);
+
+        easyBtn.setBorder(BorderFactory.createLineBorder(currentDifficulty.equals("EASY") ? ACCENT_DARK : BORDER, 1));
+        mediumBtn.setBorder(BorderFactory.createLineBorder(currentDifficulty.equals("MEDIUM") ? ACCENT_DARK : BORDER, 1));
+        hardBtn.setBorder(BorderFactory.createLineBorder(currentDifficulty.equals("HARD") ? ACCENT_DARK : BORDER, 1));
+
+        easyBtn.setForeground(TEXT_PRIMARY);
+        mediumBtn.setForeground(TEXT_PRIMARY);
+        hardBtn.setForeground(TEXT_PRIMARY);
     }
     
     private void loadLeaderboardData() {
@@ -185,14 +201,14 @@ public class Leaderboard extends JFrame {
             
             if (position > 0) {
                 JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
-                separator.setForeground(Color.WHITE);
-                separator.setBackground(Color.BLACK);
+                separator.setForeground(BORDER);
+                separator.setBackground(BORDER);
                 separator.setMaximumSize(new Dimension(470, 2));
                 leaderboardEntriesPanel.add(Box.createRigidArea(new Dimension(0, 10)));
                 leaderboardEntriesPanel.add(separator);
                 leaderboardEntriesPanel.add(Box.createRigidArea(new Dimension(0, 10)));
                 JPanel userPanel = createLeaderboardEntry(position, currentUser, time, 
-                                                        backgroundColor, true);
+                                                        ACCENT_DARK, true);
                 leaderboardEntriesPanel.add(userPanel);
             }
         }
@@ -208,39 +224,40 @@ public class Leaderboard extends JFrame {
         panel.setMaximumSize(new Dimension(470, 60));
         panel.setMinimumSize(new Dimension(470, 60));
         panel.setBackground(bgColor);
+        panel.setBorder(BorderFactory.createLineBorder(BORDER, 1));
         panel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel rankLbl = new JLabel(String.valueOf(position));
         rankLbl.setFont(new Font("Arial", Font.BOLD, 32));
-        rankLbl.setForeground(new Color(33, 37, 41));
+        rankLbl.setForeground(TEXT_PRIMARY);
         rankLbl.setPreferredSize(new Dimension(60, 60));
         rankLbl.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(rankLbl, BorderLayout.WEST);
         
         JLabel userLbl = new JLabel(username);
         userLbl.setFont(new Font("Arial", Font.BOLD, 24));
-        userLbl.setForeground(new Color(33, 37, 41));
+        userLbl.setForeground(TEXT_PRIMARY);
         userLbl.setBorder(new EmptyBorder(0, 15, 0, 0));
         panel.add(userLbl, BorderLayout.CENTER);
         
         JPanel scorePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 20));
         scorePanel.setOpaque(false);
         
-        ImageIcon icon = new ImageIcon("images/time.png");
+        ImageIcon icon = MazeRunner.ImageAssets.loadIcon(Leaderboard.class, "/images/time.png");
         JLabel timeIcon = new JLabel();
         timeIcon.setPreferredSize(new Dimension(24, 24));
         timeIcon.setIcon(icon);
         timeIcon.setOpaque(false);
         
-        String timeDisplay = time == Math.floor(time) ? String.format("%.0f", time) : String.valueOf(time);
+        String timeDisplay = String.format(Locale.US, "%.2f", time);
         JLabel timeLbl = new JLabel(timeDisplay);
         timeLbl.setFont(new Font("Arial", Font.BOLD, 18));
-        timeLbl.setForeground(new Color(33, 37, 41));
+        timeLbl.setForeground(TEXT_MUTED);
         
         if (username.equalsIgnoreCase(MazeRunner.currentUser)) {
-        	rankLbl.setForeground(new Color(255, 255, 255));
-        	userLbl.setForeground(new Color(255, 255, 255));
-        	timeLbl.setForeground(new Color(255, 255, 255));
+        	rankLbl.setForeground(TEXT_PRIMARY);
+        	userLbl.setForeground(TEXT_PRIMARY);
+        	timeLbl.setForeground(TEXT_PRIMARY);
         }
         
         scorePanel.add(timeLbl);

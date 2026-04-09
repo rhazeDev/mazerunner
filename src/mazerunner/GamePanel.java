@@ -1,15 +1,17 @@
 package mazerunner;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import mazerunner.MazeRunner.Difficulty;
 
-import Dialogz.GameResult;
 import Database.Database;
+import Dialogz.GameResult;
 
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
@@ -22,6 +24,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private static final Color FLOOR_COLOR = new Color(250, 245, 235);
     private static final Color BACKGROUND_COLOR = new Color(70, 130, 180);
 
+    private static final Color NAV_BG = new Color(30, 41, 59);
+    private static final Color NAV_BORDER_BOTTOM = new Color(15, 23, 42);
+    private static final Color NAV_ACCENT = new Color(59, 130, 246);
+
     private Player player;
     private MazeGenerator mazeGenerator;
     private MazeRunner gameFrame;
@@ -32,7 +38,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private List<Bullet> movingBullets;
     private List<Effect> activeEffects;
 
-    private DecimalFormat timeFormat = new DecimalFormat("0.0");
+    private DecimalFormat timeFormat = new DecimalFormat("0.00");
     private double timeLeft = TIMER_MAX;
     private int[][] maze;
     private boolean gameOver;
@@ -45,10 +51,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private JPanel statusPanel;
     private JLabel timeLabel;
     private JLabel bulletLabel;
+    private JLabel difficultyLabel;
+
+    /** Non-opaque; only {@link #pauseMenuPanel} draws on top of the maze during pause. */
+    private final JLayeredPane gameOverlayLayer = new JLayeredPane();
+    private final JPanel pauseMenuPanel;
 
     private ImageIcon explosionImage;
     private ImageIcon killImage;
-    
+    private ImageIcon wallImage;
+
     private SoundManager soundManager;
 
     public GamePanel(MazeRunner gameFrame) {
@@ -61,82 +73,103 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         setFocusable(true);
         addKeyListener(this);
         setBackground(BACKGROUND_COLOR);
-        try {
-            explosionImage = new ImageIcon(getClass().getResource("/images/explode.png"));
-            if (explosionImage.getIconWidth() <= 0) {
-                explosionImage = new ImageIcon("images/explode.png");
-            }
+        explosionImage = MazeRunner.ImageAssets.loadIcon(GamePanel.class, "/images/explode.png");
+        killImage = MazeRunner.ImageAssets.loadIcon(GamePanel.class, "/images/kill.png");
+        wallImage = MazeRunner.ImageAssets.loadIcon(GamePanel.class, "/images/wall.png");
 
-            killImage = new ImageIcon(getClass().getResource("/images/kill.png"));
-            if (killImage.getIconWidth() <= 0) {
-                killImage = new ImageIcon("images/kill.png");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading effect images: " + e.getMessage());
-            explosionImage = null;
-            killImage = null;
-        }
-
-        statusPanel = new JPanel();
-        statusPanel.setLayout(new BorderLayout());
+        statusPanel = new JPanel(new BorderLayout());
+        statusPanel.setOpaque(true);
+        statusPanel.setBackground(NAV_BG);
+        statusPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 3, 0, NAV_BORDER_BOTTOM),
+                new EmptyBorder(8, 20, 8, 20)));
 
         timeLabel = new JLabel();
-        try {
-            ImageIcon timerIcon = new ImageIcon(getClass().getResource("/images/time.png"));
-            if (timerIcon.getIconWidth() <= 0) {
-                timerIcon = new ImageIcon("images/time.png");
-            }
+        ImageIcon timerIcon = MazeRunner.ImageAssets.loadIcon(GamePanel.class, "/images/time.png");
+        if (timerIcon.getIconWidth() > 0) {
             timeLabel.setIcon(timerIcon);
-        } catch (Exception e) {
-            System.out.println("Error loading timer icon: " + e.getMessage());
         }
         timeLabel.setText(timeFormat.format(TIMER_MAX));
         timeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        timeLabel.setForeground(Color.WHITE);
+        timeLabel.setIconTextGap(8);
 
         bulletLabel = new JLabel();
-        try {
-            ImageIcon bulletIcon = new ImageIcon(getClass().getResource("/images/bullet_pickup.png"));
-            if (bulletIcon.getIconWidth() <= 0) {
-                bulletIcon = new ImageIcon("images/bullet.png");
-            }
+        ImageIcon bulletIcon = MazeRunner.ImageAssets.loadIcon(GamePanel.class, "/images/bullet_pickup.png");
+        if (bulletIcon.getIconWidth() <= 0) {
+            bulletIcon = MazeRunner.ImageAssets.loadIcon(GamePanel.class, "/images/bullet.png");
+        }
+        if (bulletIcon.getIconWidth() > 0) {
             bulletLabel.setIcon(bulletIcon);
-        } catch (Exception e) {
-            System.out.println("Error loading bullet icon: " + e.getMessage());
         }
         bulletLabel.setText("3");
         bulletLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        bulletLabel.setForeground(Color.WHITE);
+        bulletLabel.setIconTextGap(8);
 
-        JLabel difficultyLabel = new JLabel(MazeRunner.gameDifficulty + " MODE");
-        difficultyLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        difficultyLabel = new JLabel(MazeRunner.gameDifficulty + " MODE");
+        difficultyLabel.setFont(new Font("Arial", Font.BOLD, 18));
         difficultyLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        difficultyLabel.setForeground(Color.WHITE);
+        difficultyLabel.setOpaque(true);
+        difficultyLabel.setBackground(new Color(51, 65, 85));
+        difficultyLabel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(71, 85, 105), 1),
+                new EmptyBorder(6, 20, 6, 20)));
 
         restartButton = new JButton("Restart");
-        try {
-            ImageIcon restartIcon = new ImageIcon(getClass().getResource("/images/restart.png"));
-            if (restartIcon.getIconWidth() <= 0) {
-                restartIcon = new ImageIcon("images/restart.png");
-            }
-
-            if (restartIcon.getIconWidth() > 0) {
-                restartButton.setIcon(restartIcon);
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading restart icon: " + e.getMessage());
+        ImageIcon restartIcon = MazeRunner.ImageAssets.loadIcon(GamePanel.class, "/images/restart.png");
+        if (restartIcon.getIconWidth() > 0) {
+            restartButton.setIcon(restartIcon);
         }
+        restartButton.setFont(new Font("Arial", Font.BOLD, 16));
+        restartButton.setForeground(Color.WHITE);
+        restartButton.setBackground(NAV_ACCENT);
+        restartButton.setFocusPainted(false);
+        restartButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(37, 99, 235), 1),
+                new EmptyBorder(8, 18, 8, 18)));
+        restartButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        restartButton.setPreferredSize(new Dimension(160, 44));
+        restartButton.setContentAreaFilled(true);
+        restartButton.setOpaque(true);
 
         restartButton.addActionListener(e -> {
             initGame(currentDifficulty != null ? currentDifficulty : Difficulty.EASY);
         });
 
-        JPanel leftPanel = new JPanel();
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 0));
+        leftPanel.setOpaque(false);
         leftPanel.add(timeLabel);
-        leftPanel.add(new JLabel("   "));
         leftPanel.add(bulletLabel);
 
+        JPanel centerWrap = new JPanel(new GridBagLayout());
+        centerWrap.setOpaque(false);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 1.0;
+        c.anchor = GridBagConstraints.CENTER;
+        centerWrap.add(difficultyLabel, c);
+
         statusPanel.add(leftPanel, BorderLayout.WEST);
-        statusPanel.add(difficultyLabel, BorderLayout.CENTER);
+        statusPanel.add(centerWrap, BorderLayout.CENTER);
         statusPanel.add(restartButton, BorderLayout.EAST);
         add(statusPanel, BorderLayout.NORTH);
+
+        gameOverlayLayer.setOpaque(false);
+        pauseMenuPanel = buildPauseMenuPanel();
+        pauseMenuPanel.setVisible(false);
+        gameOverlayLayer.add(pauseMenuPanel, JLayeredPane.MODAL_LAYER);
+        gameOverlayLayer.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                syncPauseMenuBounds();
+            }
+        });
+        add(gameOverlayLayer, BorderLayout.CENTER);
+
+        installPauseEscapeShortcut();
 
         gameTimer = new Timer(GAME_SPEED, this);
 
@@ -213,13 +246,123 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         gameTimer.start();
         requestFocusInWindow();
 
-        Component[] components = statusPanel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JLabel && comp == statusPanel.getComponent(1)) {
-                ((JLabel) comp).setText(MazeRunner.gameDifficulty);
-                break;
-            }
+        difficultyLabel.setText(MazeRunner.gameDifficulty + " MODE");
+        pauseMenuPanel.setVisible(false);
+    }
+
+    private void syncPauseMenuBounds() {
+        int w = gameOverlayLayer.getWidth();
+        int h = gameOverlayLayer.getHeight();
+        if (w > 0 && h > 0) {
+            pauseMenuPanel.setBounds(0, 0, w, h);
         }
+    }
+
+    private void installPauseEscapeShortcut() {
+        KeyStroke esc = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        JRootPane root = gameFrame.getRootPane();
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(esc, "mazeRunnerTogglePause");
+        root.getActionMap().put("mazeRunnerTogglePause", new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (gameFrame.getContentPane() != GamePanel.this || gameOver || player == null) {
+                    return;
+                }
+                if (gamePaused) {
+                    hidePauseMenu();
+                } else {
+                    showPauseMenu();
+                }
+            }
+        });
+    }
+
+    private void showPauseMenu() {
+        if (gameOver || player == null) {
+            return;
+        }
+        gamePaused = true;
+        syncPauseMenuBounds();
+        pauseMenuPanel.setVisible(true);
+        pauseMenuPanel.requestFocusInWindow();
+        repaint();
+    }
+
+    private void hidePauseMenu() {
+        gamePaused = false;
+        pauseMenuPanel.setVisible(false);
+        requestFocusInWindow();
+        repaint();
+    }
+
+    private JPanel buildPauseMenuPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(true);
+        panel.setBackground(new Color(30, 41, 59));
+        panel.setFocusable(true);
+        panel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    hidePauseMenu();
+                }
+            }
+        });
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.insets = new Insets(6, 12, 6, 12);
+
+        JLabel title = new JLabel("GAME PAUSED", SwingConstants.CENTER);
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Tahoma", Font.BOLD, 32));
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(title, gbc);
+
+        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonRow.setOpaque(false);
+
+        JButton resumeBtn = new JButton("RESUME");
+        resumeBtn.setFont(new Font("Tahoma", Font.BOLD, 14));
+        resumeBtn.setForeground(Color.WHITE);
+        resumeBtn.setBackground(new Color(46, 125, 50));
+        resumeBtn.setFocusPainted(false);
+        resumeBtn.setPreferredSize(new Dimension(110, 40));
+        resumeBtn.addActionListener(e -> hidePauseMenu());
+
+        JButton restartBtn = new JButton("RESTART");
+        restartBtn.setFont(new Font("Tahoma", Font.BOLD, 14));
+        restartBtn.setForeground(Color.WHITE);
+        restartBtn.setBackground(new Color(255, 152, 0));
+        restartBtn.setFocusPainted(false);
+        restartBtn.setPreferredSize(new Dimension(110, 40));
+        restartBtn.addActionListener(e -> {
+            hidePauseMenu();
+            initGame(currentDifficulty != null ? currentDifficulty : Difficulty.EASY);
+        });
+
+        JButton menuBtn = new JButton("MENU");
+        menuBtn.setFont(new Font("Tahoma", Font.BOLD, 14));
+        menuBtn.setForeground(Color.WHITE);
+        menuBtn.setBackground(new Color(21, 101, 192));
+        menuBtn.setFocusPainted(false);
+        menuBtn.setPreferredSize(new Dimension(110, 40));
+        menuBtn.addActionListener(e -> {
+            hidePauseMenu();
+            gameFrame.showStartScreen();
+        });
+
+        buttonRow.add(resumeBtn);
+        buttonRow.add(restartBtn);
+        buttonRow.add(menuBtn);
+        gbc.gridy = 1;
+        gbc.insets = new Insets(28, 12, 12, 12);
+        panel.add(buttonRow, gbc);
+
+        return panel;
     }
 
     private void createGameElements() {
@@ -368,6 +511,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                         actionEvent -> {
                             resultDialog.dispose();
                             initGame(currentDifficulty);
+                            SwingUtilities.invokeLater(() -> {
+                                gameFrame.setVisible(true);
+                                gameFrame.setExtendedState(JFrame.NORMAL);
+                                gameFrame.toFront();
+                                gameFrame.requestFocus();
+                                gameFrame.requestFocusInWindow();
+                                requestFocusInWindow();
+                            });
                         },
                         actionEvent -> {
                             resultDialog.dispose();
@@ -392,7 +543,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     public void addEffect(int x, int y, EffectType type) {
         ImageIcon effectImage = type == EffectType.EXPLOSION ? explosionImage : killImage;
-        if (effectImage != null) {
+        if (effectImage != null && effectImage.getIconWidth() > 0) {
             activeEffects.add(new Effect(x, y, EFFECT_DURATION, effectImage));
         }
     }
@@ -499,62 +650,86 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         int panelWidth = getWidth();
         int panelHeight = getHeight();
-        int mazeWidth = mazeGenerator.getWidth() * CELL_SIZE;
-        int mazeHeight = mazeGenerator.getHeight() * CELL_SIZE;
 
-        int offsetX = Math.max(0, (panelWidth - mazeWidth) / 2);
-        int offsetY = Math.max(0, (panelHeight - mazeHeight) / 2);
+        if (gamePaused) {
+            g.setColor(BACKGROUND_COLOR);
+            g.fillRect(0, 0, panelWidth, panelHeight);
+            return;
+        }
+
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+        g.setColor(BACKGROUND_COLOR);
+        g.fillRect(0, 0, panelWidth, panelHeight);
+
+        int navH = statusPanel.getHeight();
+        if (navH <= 0) {
+            navH = Math.max(statusPanel.getPreferredSize().height, 56);
+        }
+
+        int availW = Math.max(1, panelWidth);
+        int availH = Math.max(1, panelHeight - navH);
+
+        double mazePixelW = mazeGenerator.getWidth() * (double) CELL_SIZE;
+        double mazePixelH = mazeGenerator.getHeight() * (double) CELL_SIZE;
+        double scale = Math.min(availW / mazePixelW, availH / mazePixelH);
+
+        double scaledW = mazePixelW * scale;
+        double scaledH = mazePixelH * scale;
+        int offsetX = (int) Math.round((availW - scaledW) / 2.0);
+        int offsetY = navH + (int) Math.round((availH - scaledH) / 2.0);
+
+        AffineTransform savedTransform = g2d.getTransform();
+        g2d.translate(offsetX, offsetY);
+        g2d.scale(scale, scale);
 
         for (int y = 0; y < mazeGenerator.getHeight(); y++) {
             for (int x = 0; x < mazeGenerator.getWidth(); x++) {
-                int screenX = x * CELL_SIZE + offsetX;
-                int screenY = y * CELL_SIZE + offsetY;
+                int screenX = x * CELL_SIZE;
+                int screenY = y * CELL_SIZE;
 
                 if (maze[y][x] == MazeGenerator.WALL) {
-                    try {
-                        ImageIcon wallImage = new ImageIcon(getClass().getResource("/images/wall.png"));
-                        if (wallImage.getIconWidth() <= 0) {
-                            wallImage = new ImageIcon("images/wall.png");
-                        }
-
-                        if (wallImage.getIconWidth() > 0) {
-                            g.drawImage(wallImage.getImage(), screenX, screenY, CELL_SIZE, CELL_SIZE, null);
-                        } else {
-                            g.setColor(Color.GRAY);
-                            g.fillRect(screenX, screenY, CELL_SIZE, CELL_SIZE);
-                        }
-                    } catch (Exception e) {
-                        g.setColor(Color.GRAY);
-                        g.fillRect(screenX, screenY, CELL_SIZE, CELL_SIZE);
+                    if (wallImage != null && wallImage.getIconWidth() > 0) {
+                        g2d.drawImage(wallImage.getImage(), screenX, screenY, CELL_SIZE, CELL_SIZE, null);
+                    } else {
+                        g2d.setColor(Color.GRAY);
+                        g2d.fillRect(screenX, screenY, CELL_SIZE, CELL_SIZE);
                     }
                 } else {
-                    g.setColor(FLOOR_COLOR);
-                    g.fillRect(screenX, screenY, CELL_SIZE, CELL_SIZE);
+                    g2d.setColor(FLOOR_COLOR);
+                    g2d.fillRect(screenX, screenY, CELL_SIZE, CELL_SIZE);
                 }
             }
         }
 
+        int logicOffsetX = 0;
+        int logicOffsetY = 0;
+
         for (GameElement element : gameElements) {
-            element.draw(g, offsetX, offsetY, CELL_SIZE);
+            element.draw(g2d, logicOffsetX, logicOffsetY, CELL_SIZE);
         }
 
         for (Monster monster : monsters) {
             if (!monster.isDead()) {
-                monster.draw(g, offsetX, offsetY, CELL_SIZE);
+                monster.draw(g2d, logicOffsetX, logicOffsetY, CELL_SIZE);
             }
         }
 
         for (Bullet bullet : movingBullets) {
-            bullet.draw(g, offsetX, offsetY, CELL_SIZE);
+            bullet.draw(g2d, logicOffsetX, logicOffsetY, CELL_SIZE);
         }
 
         for (Effect effect : activeEffects) {
-            effect.draw(g, offsetX, offsetY, CELL_SIZE);
+            effect.draw(g2d, logicOffsetX, logicOffsetY, CELL_SIZE);
         }
 
         if (player != null && (!gameOver || gameWon)) {
-            player.draw(g, offsetX, offsetY, CELL_SIZE);
+            player.draw(g2d, logicOffsetX, logicOffsetY, CELL_SIZE);
         }
+
+        g2d.setTransform(savedTransform);
 
         if (gameOver) {
             g.setColor(new Color(0, 0, 0, 150));
@@ -611,8 +786,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     public void keyPressed(KeyEvent e) {
-        if (gameOver || player == null)
+        if (gameOver || player == null) {
             return;
+        }
+        if (gamePaused) {
+            return;
+        }
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP:
@@ -641,28 +820,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
             case KeyEvent.VK_SPACE:
                 fireBullet(player.getDirection());
-                break;
-
-            case KeyEvent.VK_ESCAPE:
-                gamePaused = true;
-
-                Dialogz.GamePause pauseDialog = new Dialogz.GamePause();
-                pauseDialog.setButtonActions(
-                        actionEvent -> {
-                            gamePaused = false;
-                            pauseDialog.dispose();
-                            requestFocusInWindow();
-                        },
-                        actionEvent -> {
-                            pauseDialog.dispose();
-                            initGame(currentDifficulty);
-                        },
-                        actionEvent -> {
-                            pauseDialog.dispose();
-                            gameFrame.showStartScreen();
-                        });
-
-                pauseDialog.setVisible(true);
                 break;
         }
 

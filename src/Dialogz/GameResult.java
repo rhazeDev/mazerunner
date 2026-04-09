@@ -23,6 +23,8 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 
 import java.awt.event.ActionListener;
+
+import mazerunner.MazeRunner;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.MouseAdapter;
@@ -113,15 +115,9 @@ public class GameResult extends JFrame {
 		bestTimePanel.setOpaque(false);
 		bestTimePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
 		
-		try {
-			ImageIcon timeIcon = new ImageIcon(getClass().getResource("/images/time.png"));
-			if (timeIcon.getIconWidth() <= 0) {
-				timeIcon = new ImageIcon("images/time.png");
-			}
-			JLabel bestTimeIcon = new JLabel(timeIcon);
-			bestTimePanel.add(bestTimeIcon);
-		} catch (Exception e) {
-			System.out.println("Could not load time icon: " + e.getMessage());
+		ImageIcon bestTimeIconImg = MazeRunner.ImageAssets.loadIcon(GameResult.class, "/images/time.png");
+		if (bestTimeIconImg.getIconWidth() > 0) {
+			bestTimePanel.add(new JLabel(bestTimeIconImg));
 		}
 		
 		bestTimeLabel = new JLabel("00.00", SwingConstants.CENTER);
@@ -144,15 +140,9 @@ public class GameResult extends JFrame {
 		gameTimePanel.setOpaque(false);
 		gameTimePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
 		
-		try {
-			ImageIcon timeIcon = new ImageIcon(getClass().getResource("/images/time.png"));
-			if (timeIcon.getIconWidth() <= 0) {
-				timeIcon = new ImageIcon("images/time.png");
-			}
-			JLabel gameTimeIcon = new JLabel(timeIcon);
-			gameTimePanel.add(gameTimeIcon);
-		} catch (Exception e) {
-			System.out.println("Could not load time icon: " + e.getMessage());
+		ImageIcon gameTimeIconImg = MazeRunner.ImageAssets.loadIcon(GameResult.class, "/images/time.png");
+		if (gameTimeIconImg.getIconWidth() > 0) {
+			gameTimePanel.add(new JLabel(gameTimeIconImg));
 		}
 		
 		gameTimeLabel = new JLabel("00.00", SwingConstants.CENTER);
