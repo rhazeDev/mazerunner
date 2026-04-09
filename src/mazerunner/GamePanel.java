@@ -751,16 +751,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!gameOver && !gamePaused && player != null) {
-            for (Monster monster : monsters) {
-                if (!monster.isDead()) {
-                    monster.update();
-                }
-            }
-
             for (int i = movingBullets.size() - 1; i >= 0; i--) {
-                if (i >= movingBullets.size())
-                    continue;
-
                 Bullet bullet = movingBullets.get(i);
                 bullet.update();
 
@@ -768,6 +759,15 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                         bullet.getX() >= mazeGenerator.getWidth() ||
                         bullet.getY() >= mazeGenerator.getHeight()) {
                     movingBullets.remove(i);
+                }
+            }
+
+            // Resolve bullet hits before monsters move (prevents "needs multiple bullets" feel).
+            checkCollisions();
+
+            for (Monster monster : monsters) {
+                if (!monster.isDead()) {
+                    monster.update();
                 }
             }
 
@@ -779,6 +779,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 }
             }
 
+            // Check again after monster movement (player/monster collisions).
             checkCollisions();
         }
 
